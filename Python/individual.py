@@ -1,27 +1,26 @@
 # Nick LaPosta
 # Advanced Concepts in Artificial Intelligence Project
 #     Genetic MST Generator
+import random
 
 # TODO: Actually generate individuals
 def generate_individual(num_nodes, min):
 	return individual(num_nodes, min) # To be replaced with actual
-									  #     individual object
+                                          #     individual object
 
 class individual:
 
 	def __init__(self, size, minimize):
 		self.fitness = 0
+		self.genome = [random.randint(0, 255) for i in xrange(size)]
 		if minimize:
 			self.fit_mod = 1
 		else:
 			self.fit_mod = -1
 			
 	def __iter__(self):
-		return self
-		
-	def next(self):
-		raise StopIteration
-		
+		return iter(self.genome)
+
 	def set_fitness(self, value):
 		self.fitness = value * self.fit_mod
 		
