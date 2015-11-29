@@ -19,8 +19,11 @@ class hof:
 	def update(self, pop):
 		pop.sort()
 		best_candidates = pop[0:self.size]
-#		for ind in best_candidates:
-#			print ind.get_fitness(),
-#		print ""
 		for individual in best_candidates:
 			self.add(individual)
+
+	def __str__(self):
+		str = ""
+		while not self.individuals.empty():
+			str += str(individuals.get().get_fitness()),
+		return str

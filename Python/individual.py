@@ -3,17 +3,12 @@
 #     Genetic MST Generator
 import random
 
-# TODO: Actually generate individuals
-def generate_individual(num_nodes, min):
-	return individual(num_nodes, min) # To be replaced with actual
-                                          #     individual object
-
 class individual:
 
-	def __init__(self, size, minimize):
+	def __init__(self, size, min, range):
 		self.fitness = 0
-		self.genome = [random.randint(0, 255) for i in xrange(size)]
-		if minimize:
+		self.genome = [random.randint(0, range) for i in xrange(size)]
+		if min:
 			self.fit_mod = 1
 		else:
 			self.fit_mod = -1
@@ -29,5 +24,20 @@ class individual:
 	def get_fitness(self):
 		return self.fitness * self.fit_mod
 
+	def __getitem__(self, index):
+		return self.genome[index]
+
+	def __setitem__(self, index, value):
+		self.genome[index] = value
+
 	def __cmp__(self, other):
 		return cmp(self.fitness, other.fitness)
+
+	def __len__(self):
+		return len(self.genome)
+
+	def __str__(self):
+		ret = ''
+		for i in self.genome:
+			ret += str(i) + " "
+		return ret
