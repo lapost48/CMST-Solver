@@ -13,7 +13,6 @@ def fitness_evaluation(individuals):
 	for ind in individuals:
 		ind.set_fitness(ind.genome[0])
 
-# TODO: Crossover functionality
 def crossover(individuals, crossover_pb):
 	group_A = list()
 	group_B = list()
@@ -31,9 +30,8 @@ def crossover(individuals, crossover_pb):
 			ind2[i] = temp
 		ret.append(ind1)
 		ret.append(ind2)
-
 	return ret
-	
+
 # Mutates each chromosome of the entire population
 #     based on a mutation probability
 # This function runs in O(num_individuals * length of an individual) / O(n*l)
@@ -69,10 +67,12 @@ def main(pop_size, num_nodes, cross_pb, mut_pb, num_gen, hof_size):
 	hof = hall_of_fame.hof(hof_size)
 	population = generate_population(pop_size + (pop_size % 2)
 					,num_nodes * (num_nodes + 1) / 2)
+	fitness_evaluation(population)
+	hof.update(population)
 	for _ in range(num_gen):
-		fitness_evaluation(population)
 		children = crossover(population, cross_pb)
-		children = mutation(children, mut_pb)
+		population = mutation(children, mut_pb)
+		fitness_evaluation(population)
 		hof.update(population)
 	print hof
 		
@@ -81,4 +81,4 @@ if __name__=="__main__":
 #     a command line or something
 
 #	main(args[0], args[1], args[2], args[3], args[4], args[5])
-	main(10, 4, .7, .02, 1, 3)
+	main(100, 5, .7, .02, 200, 3)

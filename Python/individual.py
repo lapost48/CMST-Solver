@@ -30,6 +30,12 @@ class individual:
 	def __setitem__(self, index, value):
 		self.genome[index] = value
 
+	def __eq__(self, other):
+		num_same = 0
+		for i in xrange(len(self)):
+			num_same += 1 if self[i] == other[i] else 0
+		return num_same == len(self)
+
 	def __cmp__(self, other):
 		return cmp(self.fitness, other.fitness)
 

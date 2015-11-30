@@ -8,11 +8,19 @@ class hof:
 	def __init__(self, size):
 		self.individuals = q.Queue(size)
 		self.size = size
-		
+
 	def add(self, individual):
 		temp = q.PriorityQueue()
+		in_queue = False
 		while not self.individuals.empty():
-			temp.put(self.individuals.get())
+			old_ind = self.individuals.get()
+			if individual == old_ind:
+				in_queue = True
+			temp.put(old_ind)
+
+		if not in_queue:
+			temp.put(individual)
+
 		while not self.individuals.full() and not temp.empty():
 			self.individuals.put(temp.get())
 			
@@ -23,7 +31,10 @@ class hof:
 			self.add(individual)
 
 	def __str__(self):
-		str = ""
+		ret = ''
 		while not self.individuals.empty():
-			str += str(individuals.get().get_fitness()),
-		return str
+			ind = self.individuals.get()
+			ret += "Individual: " + str(ind) + "\n"
+			ret += "Fitness: " + str(ind.get_fitness())
+			ret += "\n\n"
+		return ret
