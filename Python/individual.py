@@ -8,6 +8,7 @@ class individual:
 	def __init__(self, size, min, range):
 		self.fitness = 0
 		self.genome = [random.randint(0, range) for i in xrange(size)]
+		self.tree = []
 		if min:
 			self.fit_mod = 1
 		else:
