@@ -34,7 +34,7 @@ class hof:
 		ret = ''
 		while not self.individuals.empty():
 			ind = self.individuals.get()
-			ret += "Individual: " + str(ind) + "\n"
+#			ret += "Individual: " + str(ind) + "\n"
 			ret += "Fitness: " + str(ind.get_fitness()) + "\n"
 			ret += "Tree: " + str(ind.tree)
 			ret += "\n\n"
