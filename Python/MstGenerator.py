@@ -14,18 +14,28 @@ TOURNAMENT_SIZE = 10
 NUM_NODES = 0
 INDEX_RANGE = 256
 MINIMIZE = True
-
-# TODO: Make adjacency matrix from input graph
+ROOT = 0
+CAPACITY = 0
+MAXIMUM_FITNESS = 0
 
 def random_adjacency_matrix():
+	global MAXIMUM_FITNESS
 	global ADJACENCY_MATRIX
 	ADJACENCY_MATRIX = [[0 for x in xrange(NUM_NODES)]
 			    for x in xrange(NUM_NODES)]
 	for col in xrange(len(ADJACENCY_MATRIX)):
-		for row in xrange(len(ADJACENCY_MATRIX[col])):
-			ADJACENCY_MATRIX[col][row] = random.randint(0, 100) if col != row else sys.maxint
-			print ADJACENCY_MATRIX[col][row],
+		for row in xrange(col, len(ADJACENCY_MATRIX[col])):
+			value = random.randint(0, 100) if col != row else sys.maxint
+			ADJACENCY_MATRIX[col][row] = value
+			ADJACENCY_MATRIX[row][col] = value
+			
+			if row != col:
+				if value > MAXIMUM_FITNESS:
+					MAXIMUM_FITNESS = value
+				print ADJACENCY_MATRIX[col][row],
 		print ""
+	print MAXIMUM_FITNESS
+	MAXIMUM_FITNESS *= NUM_NODES
 
 def fitness_evaluation(individuals):
 	global NUM_NODES
@@ -46,22 +56,44 @@ def fitness_evaluation(individuals):
 					matrix[col][row] =  genome[row]
 					matrix[col][row] += genome[col]
 					matrix[col][row] += genome[int(index)]
-#				print matrix[col][row],
-#			print ""
-#		print ""
 		ind.fitness = random.randint(1, 255)
+
 		# Apply Prim's Algorithm to get Tree
 		tree = prim(matrix)
-		# TODO: Get Validity of Tree
 
-		# Get weight of converted representation
-		weight = 0
+		# Depth search starting from ROOT
+		over_capacity = False
 		for edge in tree:
-			(col, row) = edge
-			weight += ADJACENCY_MATRIX[col - 1][row - 1]
-		ind.tree = tree
-		ind.fitness = weight
+			b_weight = 0
+			if edge[0] == ROOT:
+				b_weight = measure_branch(tree, edge[1], ROOT)
+			elif edge[1] == ROOT:
+				b_weight = measure_branch(tree, edge[0], ROOT)
+			if b_weight > CAPACITY:
+				ind.tree = tree
+				ind.fitness = MAXIMUM_FITNESS
+				over_capacity = True
 
+		# Get weight of converted representation if under capacity
+		if not over_capacity:
+			weight = 0
+			for edge in tree:
+				(col, row) = edge
+				weight += ADJACENCY_MATRIX[col - 1][row - 1]
+			ind.tree = tree
+			ind.fitness = weight
+
+# This function counts the number of nodes on a branch starting at a node
+def measure_branch(tree, parent, prev):
+	weight = 0
+	for edge in tree:
+		if  edge[0] == parent and edge[1] != prev:
+			weight += measure_branch(tree, edge[1], parent)
+		elif edge[0] != prev and edge[1] == parent:
+			weight += measure_branch(tree, edge[0], parent)
+	return weight + 1
+
+# Applies Prim's Algorithm to find MSTs
 def prim(matrix):
 	nodes = [1]
 	tree = []
@@ -83,6 +115,7 @@ def prim(matrix):
 		nodes.append(smallest[0][1])
 	return tree
 
+# Selects and crosses parent individuals to create new offspring
 def crossover(individuals, crossover_pb):
 	group_A = list()
 	group_B = list()
@@ -105,10 +138,11 @@ def crossover(individuals, crossover_pb):
 	for i in xrange(len(group_A)):
 		ind1 = group_A.pop()
 		ind2 = group_B.pop()
-		for i in xrange(random.randint(1, len(ind1))):
-			temp = ind1[i]
-			ind1[i] = ind2[i]
-			ind2[i] = temp
+		if random.random() < crossover_pb:
+			for i in xrange(random.randint(1, len(ind1))):
+				temp = ind1[i]
+				ind1[i] = ind2[i]
+				ind2[i] = temp
 		ret.append(ind1)
 		ret.append(ind2)
 	return ret
@@ -143,37 +177,56 @@ def generate_population(num_individuals, ind_size):
 # This is the main function that executes the genetic algorithm
 def main(pop_size, graph_file, cross_pb, mut_pb, num_gen, hof_size):
 	global TOURNAMENT_SIZE
-	TOURNAMENT_SIZE = int(pop_size / 10)
+	TOURNAMENT_SIZE = 20
+
 	global NUM_NODES
 	NUM_NODES = int(graph_file)
-	# TODO: Graph input
+
+	global ROOT
+	ROOT = random.randint(1, NUM_NODES)
+
+	global CAPACITY
+	CAPACITY = random.randint(3, NUM_NODES)
+
 	random_adjacency_matrix()
+
 	# Hall Of Fame is terminology from deap but
 	#     I like it so I am giving it credit here
 	hof = hall_of_fame.hof(hof_size)
+
 	population = generate_population(pop_size + (pop_size % 2)
 					,int(NUM_NODES * (NUM_NODES + 1) / 2))
+
 	fitness_evaluation(population)
 	hof.update(population)
+
 	start = time.clock()
+
 	progress.startProgress("Generation Progress")
+
+	# GA Execution
+	# Mutation function can be changed from here
 	for cur_gen in range(num_gen):
 		children = crossover(population, cross_pb)
-		population = mutation_quick(children, mut_pb)
+		population = mutation(children, mut_pb)
 		fitness_evaluation(population)
 		hof.update(population)
 		progress.progress((cur_gen / num_gen) * 100)
+
 	progress.endProgress()
+
 	print hof
 	print "Time: ", time.clock() - start
-	comp = prim(ADJACENCY_MATRIX)
-	weight = 0
-	for edge in comp:
-		(col, row) = edge
-		weight += ADJACENCY_MATRIX[col - 1][row - 1]
-	print "Weight: ", weight
+	print "ROOT: ", ROOT
+	print "CAPACITY: ", CAPACITY
+#	comp = prim(ADJACENCY_MATRIX)
+#	weight = 0
+#	for edge in comp:
+#		(col, row) = edge
+#		weight += ADJACENCY_MATRIX[col - 1][row - 1]
+#	print "Weight: ", weight
 
 		
 if __name__=="__main__":
-	main(100, sys.argv[1], 0.7, 0.02, 200, 3)
+	main(150, sys.argv[1], 0.7, 0.02, 200, 3)
 #	main(100, 20, .7, .2, 200, 3)
